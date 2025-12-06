@@ -1,0 +1,25 @@
+name: Daily Contribution Booster
+
+on:
+  schedule:
+    - cron: "0 15 * * *" # Runs every day at 15:00 UTC (~8:30 PM IST)
+  workflow_dispatch: # Manual trigger if needed
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Make a small daily update
+        run: |
+          echo "Last update: $(date -u)" > heartbeat.txt
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "Manidhar"
+          git config user.email "manidharmanidhar2@gmail.com"
+          git add heartbeat.txt
+          git commit -m "Automated daily contribution update"
+          git push
