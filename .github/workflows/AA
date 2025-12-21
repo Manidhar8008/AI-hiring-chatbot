@@ -1,0 +1,48 @@
+import numpy as np
+import pandas as pd
+
+# --- Step 1: Generate synthetic business KPI data ---
+np.random.seed(42)
+
+days = 120
+dates = pd.date_range(start="2024-01-01", periods=days)
+
+# baseline KPI (e.g., daily revenue)
+kpi = np.random.normal(loc=1000, scale=80, size=days)
+
+# inject anomalies (real life is messy)
+kpi[30] += 400     # sudden spike
+kpi[75] -= 350     # sudden drop
+kpi[105] += 500    # leadership panic moment
+
+df = pd.DataFrame({
+    "date": dates,
+    "daily_kpi": kpi
+})
+
+# --- Step 2: Rolling statistics (operational intelligence) ---
+window = 7
+df["rolling_mean"] = df["daily_kpi"].rolling(window).mean()
+df["rolling_std"] = df["daily_kpi"].rolling(window).std()
+
+# --- Step 3: Z-score based anomaly detection ---
+df["z_score"] = (df["daily_kpi"] - df["rolling_mean"]) / df["rolling_std"]
+df["anomaly"] = df["z_score"].abs() > 2.5
+
+# --- Step 4: Executive-ready summary ---
+anomalies = df[df["anomaly"]]
+
+print("=== KPI ANOMALY REPORT ===")
+print(anomalies[["date", "daily_kpi", "z_score"]])
+
+# --- Step 5: Actionable interpretation ---
+def interpret(row):
+    if row["z_score"] > 0:
+        return "Unusual spike – investigate promotions, fraud, or data errors"
+    else:
+        return "Unusual drop – check outages, churn, or operational failures"
+
+df.loc[df["anomaly"], "business_interpretation"] = df[df["anomaly"]].apply(interpret, axis=1)
+
+print("\n=== BUSINESS INTERPRETATION ===")
+print(df[df["anomaly"]][["date", "daily_kpi", "business_interpretation"]])
